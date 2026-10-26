@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Протокол вскрытия №1031</title>
+<meta property="og:title" content="⚠️ Срочно. Открой">
+<meta property="og:description" content="Клиент ждёт ответа">
+<style>
+/* Layout: the viewer's own phone is the crime scene — a lock screen that floods with notifications, then the autopsy report */
+:root{
+  --black:#000;
+  --glass:rgba(38,38,42,.78);
+  --glass-2:rgba(58,58,64,.9);
+  --white:#f4f5f6;
+  --grey:#9a9ca3;
+  --red:#ff3b30;
+  --paper:#dfe4e2;
+  --ink:#1b2326;
+  --muted:#5d6a6e;
+  --rule:#a9b4b2;
+  --blood:#a3121c;
+  --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Roboto","Segoe UI",Arial,sans-serif;
+  --mono:"SF Mono","Roboto Mono",Menlo,Consolas,"Courier New",monospace;
+  --serif:Georgia,"Times New Roman",serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--black);color:var(--white);font-family:var(--ui)}
+body{overflow-x:hidden}
+button{font:inherit;color:inherit}
+
+/* ---------- LOCK SCREEN ---------- */
+#lock{position:relative;min-height:100vh;min-height:100dvh;overflow:hidden;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 90px) max(12px,env(safe-area-inset-left,0px));
+  background:radial-gradient(120% 70% at 30% 0%,#2a1d3c 0%,transparent 60%),radial-gradient(90% 60% at 100% 100%,#3b1015 0%,transparent 65%),#07070a;
+  transition:background 1.2s}
+#lock.panic{background:radial-gradient(120% 70% at 30% 0%,#4a0c12 0%,transparent 60%),radial-gradient(90% 60% at 100% 100%,#6b0e14 0%,transparent 65%),#120203}
+.status{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;padding:2px 10px 0}
+.status .r{display:flex;gap:6px;align-items:center}
+.bat{display:inline-flex;align-items:center;gap:4px}
+.bat i{width:24px;height:12px;border:1.5px solid var(--white);border-radius:3px;position:relative;display:inline-block}
+.bat i::after{content:"";position:absolute;left:1px;top:1px;bottom:1px;width:var(--lvl,3px);background:var(--red);border-radius:1px}
+.clock{text-align:center;margin-top:22px}
+.clock .d{font-size:17px;font-weight:500;color:#e7e7ea}
+.clock .t{font-size:84px;font-weight:600;line-height:1;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.focus{display:flex;justify-content:center;margin-top:14px}
+.focus span{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:20px;padding:6px 14px;font-size:13px;color:#ddd}
+
+#stack{display:flex;flex-direction:column;gap:8px;margin:22px auto 0;max-width:460px}
+.n{background:var(--glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;padding:11px 13px;display:grid;grid-template-columns:38px 1fr;gap:11px;align-items:start;
+  animation:drop .42s cubic-bezier(.2,1.3,.4,1) both;transform-origin:top center}
+.n .ic{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:17px;color:#fff}
+.n .h{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--grey)}
+.n .h b{color:var(--white);font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.n .h span{flex:none}
+.n p{margin:2px 0 0;font-size:15px;line-height:1.3;min-width:0;overflow-wrap:anywhere}
+.n .app{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--grey);margin-bottom:1px}
+.n.call{background:rgba(255,59,48,.22);border:1px solid rgba(255,59,48,.5)}
+.n.big p{font-weight:700}
+@keyframes drop{from{transform:translateY(-30px) scale(.94)}to{transform:none}}
+.more{text-align:center;font-size:13px;color:var(--grey);padding:4px}
+
+.shake{animation:shake .38s linear}
+@keyframes shake{0%,100%{transform:none}20%{transform:translate(-4px,1px)}40%{transform:translate(4px,-1px)}60%{transform:translate(-3px,0)}80%{transform:translate(3px,1px)}}
+
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 14px) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;align-items:center;gap:10px;background:linear-gradient(transparent,#000c 40%)}
+#unlock{background:var(--glass-2);border:0;border-radius:30px;padding:13px 22px;font-size:15px;font-weight:600;cursor:pointer}
+#unlock:focus-visible,#sound:focus-visible{outline:2px solid #fff;outline-offset:3px}
+#sound{background:none;border:0;color:var(--grey);font-size:13px;text-decoration:underline;cursor:pointer}
+.bar{width:134px;height:5px;border-radius:3px;background:#fff}
+
+/* dead overlay */
+#dead{position:fixed;inset:0;z-index:20;background:#000;display:grid;place-items:center;text-align:center;padding:24px max(24px,env(safe-area-inset-right,0px)) 24px max(24px,env(safe-area-inset-left,0px))}
+#dead .z{font-family:var(--mono);color:var(--red);font-size:13px;letter-spacing:.2em;text-transform:uppercase}
+#dead h2{font-size:28px;margin:14px 0 8px;font-weight:700;text-wrap:balance}
+#dead p{color:var(--grey);margin:0 0 22px;max-width:320px}
+#dead button{background:var(--red);border:0;border-radius:12px;padding:14px 22px;font-size:16px;font-weight:700;color:#fff;cursor:pointer}
+.flat{position:relative;height:2px;width:220px;background:var(--red);margin:0 auto;box-shadow:0 0 12px var(--red)}
+
+/* ---------- AUTOPSY ---------- */
+#report{background:#0d1215;padding:28px max(16px,env(safe-area-inset-right,0px)) 60px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.sheet{background:var(--paper);color:var(--ink);padding:26px 22px 30px;position:relative;box-shadow:0 30px 60px -20px #000;
+  background-image:repeating-linear-gradient(0deg,transparent 0 31px,#0000000a 31px 32px);font-family:var(--serif)}
+.sheet h1{font-family:var(--ui);font-weight:800;text-transform:uppercase;font-size:clamp(26px,7vw,38px);line-height:1.02;margin:0 0 6px;text-wrap:balance;letter-spacing:-.01em}
+.sub{font-family:var(--mono);font-size:13px;color:var(--muted);margin:0}
+.stamp{position:absolute;top:18px;right:14px;transform:rotate(-11deg);border:3px solid var(--blood);color:var(--blood);font-family:var(--ui);font-weight:800;font-size:15px;line-height:1.05;text-transform:uppercase;padding:5px 9px;text-align:center;opacity:.85}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:20px 0 0;padding:16px 0 0;border-top:2px solid var(--ink)}
+.f{min-width:0}.f dt{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.f dd{margin:0;font-family:var(--mono);font-size:15px;border-bottom:1px dotted var(--rule);padding-bottom:3px}
+.f.wide{grid-column:1/-1}
+.sheet h3{font-family:var(--ui);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:14px;margin:26px 0 10px}
+.sheet h3 span{font-family:var(--mono);font-weight:400;font-size:12px;color:var(--blood);text-transform:none;letter-spacing:0;margin-left:6px}
+.cause{font-size:18px;line-height:1.45;margin:0}
+.cause strong{color:var(--blood)}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:grid;grid-template-columns:92px 1fr;gap:12px;padding:9px 0;border-bottom:1px solid #00000014}
+.tl time{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tl p{margin:0;min-width:0}
+.tl li.c time{color:var(--blood)} .tl li.c p{font-weight:700}
+.counter{margin-top:24px;background:var(--ink);color:var(--paper);padding:18px}
+.counter .l{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#9fb0b2}
+.counter .num{font-family:var(--ui);font-weight:800;font-size:clamp(32px,10vw,48px);color:var(--red);font-variant-numeric:tabular-nums;margin-top:4px}
+.counter .note{font-family:var(--mono);font-size:12px;color:#9fb0b2;margin:6px 0 0}
+.sign{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:26px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.sign div{border-top:1px solid var(--ink);padding-top:4px;min-width:150px;flex:1}
+.foot{text-align:center;font-family:var(--mono);font-size:12px;color:#6f7d81;line-height:1.7}
+.foot b{color:var(--paper);font-weight:400}
+#again{background:none;border:1px solid #3a474d;color:#9fb0b2;border-radius:10px;padding:10px 16px;font-family:var(--mono);font-size:12px;cursor:pointer;justify-self:center;margin:0 auto}
+@media (max-width:440px){.fields{grid-template-columns:1fr}.tl li{grid-template-columns:1fr;gap:2px}.stamp{position:static;display:inline-block;margin-bottom:12px;transform:rotate(-4deg)}.clock .t{font-size:76px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<section id="lock" aria-label="Экран блокировки">
+  <div class="status"><span id="st">18:47</span><span class="r"><span>LTE</span><span class="bat"><span id="pct">3%</span><i id="bi"></i></span></span></div>
+  <div class="clock"><div class="d" id="dt">пятница</div><div class="t" id="tm">18:47</div></div>
+  <div class="focus"><span>🌙 Не беспокоить: выключено</span></div>
+  <div id="stack" aria-live="polite"></div>
+</section>
+
+<div class="bottom">
+  <button id="sound" type="button">🔇 Включить звук</button>
+  <button id="unlock" type="button">Смахните, чтобы ответить клиенту</button>
+  <div class="bar"></div>
+</div>
+
+<div id="dead" hidden>
+  <div>
+    <div class="flat"></div>
+    <div class="z" style="margin-top:22px">Сигнал потерян</div>
+    <h2>Владелица телефона не может ответить</h2>
+    <p>Проджект-менеджер скончалась на рабочем месте. Причину установило вскрытие.</p>
+    <button id="toReport" type="button">Открыть протокол вскрытия</button>
+  </div>
+</div>
+
+<section id="report" hidden>
+  <div class="wrap">
+    <article class="sheet">
+      <div class="stamp">Вскрытие<br>проведено</div>
+      <h1>Протокол вскрытия №1031</h1>
+      <p class="sub">Тело проджект-менеджера обнаружено в понедельник, 09:12, у кофемашины</p>
+      <dl class="fields">
+        <div class="f"><dt>Должность</dt><dd>Junior project manager</dd></div>
+        <div class="f"><dt>Стаж</dt><dd>1,5 года</dd></div>
+        <div class="f"><dt>Время смерти</dt><dd>Пт, 18:47</dd></div>
+        <div class="f"><dt>Последние слова</dt><dd>«Ну всё, я ушла»</dd></div>
+        <div class="f wide"><dt>Непрочитанных при осмотре</dt><dd><span id="unreadR">214</span> сообщений, 12 пропущенных вызовов</dd></div>
+      </dl>
+      <h3>Причина смерти <span>// заключение</span></h3>
+      <p class="cause">Острая отправка письма в пятницу вечером. Во вложении оказался <strong>Медиаплан_v7_СТАРЫЙ_НЕ_ОТПРАВЛЯТЬ.xlsx</strong> с ценами без скидки, в копии стоял генеральный директор клиента. Осложнение: в рекламном кабинете не был выставлен дневной лимит.</p>
+      <h3>Хронология <span>// восстановлено по логам</span></h3>
+      <ol class="tl">
+        <li><time>Пт 18:41</time><p>Запускает кампанию «Чёрная пятница», чтобы успеть до выходных.</p></li>
+        <li><time>Пт 18:46</time><p>Пишет клиенту: «Направляю актуальный медиаплан».</p></li>
+        <li class="c"><time>Пт 18:47</time><p>Прикрепляет не тот файл. Нажимает «Отправить». Закрывает ноутбук.</p></li>
+        <li><time>Пт 19:02</time><p>Клиент: «Почему цены выросли на 40%?» Ответа нет.</p></li>
+        <li><time>Сб 03:15</time><p>Кампания открутила месячный бюджет и продолжает крутиться.</p></li>
+        <li class="c"><time>Пн 09:12</time><p>Открывает телефон. То, что вы только что видели.</p></li>
+      </ol>
+      <div class="counter">
+        <div class="l">● Открутка продолжается прямо сейчас</div>
+        <div class="num" id="spend">1 480 000 ₽</div>
+        <p class="note">План на месяц: 515 000 ₽. Перерасход 287%. Кто платит, выясняют юристы.</p>
+      </div>
+      <div class="sign"><div>Патологоанатом: руководитель группы</div><div>Родственники уведомлены: клиент (в копии)</div></div>
+    </article>
+    <p class="foot">Счастливого Хэллоуина.<br><b>Проверяйте вложения. Ставьте лимиты. Не отправляйте в пятницу.</b></p>
+    <button id="again" type="button">↻ Пережить это ещё раз</button>
+  </div>
+</section>
+
+<script>
+(function(){
+  var C={client:'#3b82f6',gen:'#7c3aed',mail:'#0ea5e9',ads:'#f59e0b',call:'#16a34a',boss:'#ef4444',fin:'#334155',chat:'#2563eb',bank:'#10b981',tg:'#0891b2'};
+  // [delay ms before, app, color key, letter, sender, text, time label, extra class]
+  var Q=[
+    [600,'Почта','mail','✉','Вы','Отправлено: «Актуальный медиаплан». Вложение: Медиаплан_v7_СТАРЫЙ_НЕ_ОТПРАВЛЯТЬ.xlsx','сейчас'],
+    [1800,'Почта','mail','✉','Ошибка','Не удалось отозвать сообщение. Получатели уже открыли письмо.','сейчас','big'],
+    [1300,'Мессенджер','client','М','Марина, клиент','Почему цены выросли на 40%?','сейчас'],
+    [900,'Мессенджер','client','М','Марина, клиент','Это шутка?','сейчас'],
+    [1100,'Почта','gen','О','Олег Викторович, гендир клиента','Коллеги, прошу пояснить. Мы так не договаривались.','сейчас'],
+    [1200,'Рекламный кабинет','ads','₽','Кампания «Чёрная пятница»','Израсходовано 100% месячного бюджета. Кампания продолжает показы.','сейчас','big'],
+    [800,'Телефон','call','✆','Марина, клиент','Пропущенный вызов','сейчас','call'],
+    [700,'Мессенджер','client','М','Марина, клиент','Возьмите трубку','сейчас'],
+    [700,'Телефон','call','✆','Марина, клиент','Пропущенный вызов (2)','сейчас','call'],
+    [900,'Рекламный кабинет','ads','₽','Кампания «Чёрная пятница»','Расход: 187% от плана. Дневной лимит не установлен.','сейчас','big'],
+    [700,'Рабочий чат','chat','Р','#клиент-срочно','Руководитель группы: кто отправлял письмо??','сейчас'],
+    [600,'Рабочий чат','chat','Р','#клиент-срочно','Руководитель группы: ты тут?','сейчас'],
+    [600,'Телефон','call','✆','Олег Викторович, гендир клиента','Пропущенный вызов','сейчас','call'],
+    [600,'Мессенджер','client','М','Марина, клиент','СРОЧНО ОСТАНОВИТЕ РЕКЛАМУ','сейчас','big'],
+    [500,'Рекламный кабинет','ads','₽','Кампания «Чёрная пятница»','Расход: 243%. Показано 2 340 000 раз.','сейчас'],
+    [500,'Почта','gen','О','Олег Викторович, гендир клиента','Рассматриваем расторжение договора.','сейчас','big'],
+    [450,'Телефон','call','✆','Руководитель группы','Пропущенный вызов (3)','сейчас','call'],
+    [450,'Мессенджер','fin','Ф','Финдир агентства','Зайди ко мне.','сейчас'],
+    [400,'Рекламный кабинет','ads','₽','Кампания «Чёрная пятница»','Расход: 287%. Перерасход 965 000 ₽','сейчас','big'],
+    [400,'Мессенджер','fin','Ф','Финдир агентства','И ноутбук возьми.','сейчас','big'],
+    [380,'Телефон','call','✆','Марина, клиент','Пропущенный вызов (7)','сейчас','call'],
+    [350,'Рабочий чат','chat','Р','#клиент-срочно','Генеральный директор агентства добавлен в чат','сейчас'],
+    [350,'Почта','mail','✉','Юридический отдел','Претензия № 47/11 во вложении','сейчас'],
+    [320,'Телефон','call','✆','Олег Викторович, гендир клиента','Пропущенный вызов (12)','сейчас','call'],
+    [320,'Мессенджер','boss','!','Генеральный директор агентства','Где она?','сейчас','big']
+  ];
+  var stack=document.getElementById('stack'),lock=document.getElementById('lock'),dead=document.getElementById('dead'),report=document.getElementById('report');
+  var unlockBtn=document.getElementById('unlock'),soundBtn=document.getElementById('sound');
+  var audio=null,soundOn=false,timer=null,i=0,shown=0,MAXV=7,hiddenCount=0,more=null,battery=3;
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function clock(){var d=new Date(),h=('0'+d.getHours()).slice(-2),m=('0'+d.getMinutes()).slice(-2);
+    document.getElementById('tm').textContent=h+':'+m;document.getElementById('st').textContent=h+':'+m;
+    document.getElementById('dt').textContent=d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});}
+  clock();setInterval(clock,10000);
+
+  function ding(urgent){if(!soundOn||!audio)return;try{var t=audio.currentTime;[0,0.12].forEach(function(o,k){var os=audio.createOscillator(),g=audio.createGain();
+      os.type=urgent?'square':'sine';os.frequency.value=urgent?(k?660:880):(k?1320:990);g.gain.setValueAtTime(0.0001,t+o);g.gain.exponentialRampToValueAtTime(urgent?0.12:0.2,t+o+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+o+0.18);os.connect(g);g.connect(audio.destination);os.start(t+o);os.stop(t+o+0.2);});}catch(e){}}
+  function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+
+  function add(q){
+    var el=document.createElement('div');el.className='n '+(q[7]||'');
+    el.innerHTML='<div class="ic" style="background:'+C[q[2]]+'">'+q[3]+'</div><div><div class="app">'+q[1]+'</div><div class="h"><b></b><span>'+q[6]+'</span></div><p></p></div>';
+    el.querySelector('b').textContent=q[4];el.querySelector('p').textContent=q[5];
+    stack.insertBefore(el,stack.firstChild);shown++;
+    var cards=stack.querySelectorAll('.n');
+    if(cards.length>MAXV){cards[cards.length-1].remove();hiddenCount++;
+      if(!more){more=document.createElement('div');more.className='more';stack.appendChild(more);}
+      else stack.appendChild(more);
+      more.textContent='Ещё '+hiddenCount+' уведомлений';}
+    if(!reduce){lock.classList.remove('shake');void lock.offsetWidth;lock.classList.add('shake');}
+    var urgent=/big|call/.test(q[7]||'');ding(urgent);buzz(urgent?[200,80,200]:120);
+    if(shown===10)lock.classList.add('panic');
+    if(shown%5===0&&battery>1){battery--;document.getElementById('pct').textContent=battery+'%';document.getElementById('bi').style.setProperty('--lvl',battery+'px');}
+  }
+  function step(){
+    if(i>=Q.length){timer=setTimeout(die,1800);return;}
+    var q=Q[i++];add(q);timer=setTimeout(step,Q[i]?Q[i][0]:0);
+  }
+  function die(){clearTimeout(timer);buzz([600]);if(soundOn&&audio){try{var o=audio.createOscillator(),g=audio.createGain();o.frequency.value=1000;g.gain.value=0.12;o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+2.2);}catch(e){}}
+    dead.hidden=false;document.querySelector('.bottom').hidden=true;}
+  function showReport(){dead.hidden=true;lock.hidden=true;document.querySelector('.bottom').hidden=true;report.hidden=false;window.scrollTo(0,0);startSpend();}
+  function start(){clearTimeout(timer);stack.innerHTML='';more=null;hiddenCount=0;shown=0;i=0;battery=3;
+    document.getElementById('pct').textContent='3%';lock.classList.remove('panic');lock.hidden=false;report.hidden=true;dead.hidden=true;
+    document.querySelector('.bottom').hidden=false;timer=setTimeout(step,Q[0][0]);window.scrollTo(0,0);}
+
+  soundBtn.addEventListener('click',function(){
+    try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();audio.resume&&audio.resume();}catch(e){}
+    soundOn=!soundOn;soundBtn.textContent=soundOn?'🔊 Звук включён':'🔇 Включить звук';buzz(50);ding(false);});
+  unlockBtn.addEventListener('click',function(){
+    // trying to answer only makes it worse
+    unlockBtn.textContent='Face ID не распознал лицо. Слишком бледное.';buzz([100,50,100]);
+    for(var k=0;k<3&&i<Q.length;k++)add(Q[i++]);
+    setTimeout(function(){unlockBtn.textContent='Смахните, чтобы ответить клиенту'},2200);});
+  document.getElementById('toReport').addEventListener('click',showReport);
+  document.getElementById('again').addEventListener('click',start);
+
+  var spendT=null;
+  function startSpend(){var el=document.getElementById('spend'),v=1480000;clearInterval(spendT);if(reduce)return;
+    spendT=setInterval(function(){v+=Math.floor(180+Math.random()*900);el.textContent=v.toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽';},140);}
+
+  start();
+})();
+</script>
+</body>
+</html>
