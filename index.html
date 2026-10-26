@@ -26,6 +26,7 @@
   --serif:Georgia,"Times New Roman",serif;
   color-scheme:dark;
 }
+[hidden]{display:none!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--black);color:var(--white);font-family:var(--ui)}
 body{overflow-x:hidden}
@@ -76,7 +77,21 @@ button{font:inherit;color:inherit}
 #dead{position:fixed;inset:0;z-index:20;background:#000;display:grid;place-items:center;text-align:center;padding:24px max(24px,env(safe-area-inset-right,0px)) 24px max(24px,env(safe-area-inset-left,0px))}
 #dead .z{font-family:var(--mono);color:var(--red);font-size:13px;letter-spacing:.2em;text-transform:uppercase}
 #dead h2{font-size:28px;margin:14px 0 8px;font-weight:700;text-wrap:balance}
-#dead p{color:var(--grey);margin:0 0 22px;max-width:320px}
+#dead p{color:var(--grey);margin:0 auto 22px;max-width:320px;text-align:center}
+#dead>div{position:relative;z-index:2;animation:jit 3.2s steps(1) infinite}
+#noise{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.16;pointer-events:none;image-rendering:pixelated}
+.scan{position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}
+.scan::after{content:"";position:absolute;left:0;right:0;height:70px;background:linear-gradient(transparent,rgba(255,255,255,.06),transparent);animation:roll 4s linear infinite}
+@keyframes roll{from{top:-70px}to{top:100%}}
+#dead h2{position:relative}
+#dead h2::before,#dead h2::after{content:attr(data-t);position:absolute;inset:0;pointer-events:none}
+#dead h2::before{color:#ff2b4a;mix-blend-mode:screen;animation:gl1 2.4s steps(1) infinite}
+#dead h2::after{color:#21d4ff;mix-blend-mode:screen;animation:gl2 2.4s steps(1) infinite}
+@keyframes gl1{0%,86%,100%{transform:none;clip-path:inset(0 0 0 0);opacity:0}87%{opacity:.9;transform:translate(-4px,0);clip-path:inset(10% 0 55% 0)}90%{opacity:.9;transform:translate(3px,0);clip-path:inset(60% 0 8% 0)}93%{opacity:.9;transform:translate(-2px,1px);clip-path:inset(30% 0 40% 0)}}
+@keyframes gl2{0%,86%,100%{transform:none;opacity:0}88%{opacity:.9;transform:translate(4px,0);clip-path:inset(50% 0 20% 0)}91%{opacity:.9;transform:translate(-3px,-1px);clip-path:inset(5% 0 70% 0)}}
+@keyframes jit{0%,91%,100%{transform:none;filter:none}92%{transform:translate(-3px,1px) skewX(4deg);filter:contrast(1.6)}94%{transform:translate(2px,-1px)}96%{transform:none;filter:brightness(1.8)}}
+.flat{animation:flick 2.4s steps(1) infinite}
+@keyframes flick{0%,100%{opacity:1}43%{opacity:.3}45%{opacity:1}88%{opacity:.15}90%{opacity:1}}
 #dead button{background:var(--red);border:0;border-radius:12px;padding:14px 22px;font-size:16px;font-weight:700;color:#fff;cursor:pointer}
 .flat{position:relative;height:2px;width:220px;background:var(--red);margin:0 auto;box-shadow:0 0 12px var(--red)}
 
@@ -130,10 +145,12 @@ button{font:inherit;color:inherit}
 </div>
 
 <div id="dead" hidden>
+  <canvas id="noise" width="160" height="300"></canvas>
+  <div class="scan"></div>
   <div>
     <div class="flat"></div>
     <div class="z" style="margin-top:22px">Сигнал потерян</div>
-    <h2>Владелица телефона не может ответить</h2>
+    <h2 data-t="Владелица телефона не может ответить">Владелица телефона не может ответить</h2>
     <p>Проджект-менеджер скончалась на рабочем месте. Причину установило вскрытие.</p>
     <button id="toReport" type="button">Открыть протокол вскрытия</button>
   </div>
@@ -241,7 +258,10 @@ button{font:inherit;color:inherit}
     var q=Q[i++];add(q);timer=setTimeout(step,Q[i]?Q[i][0]:0);
   }
   function die(){clearTimeout(timer);buzz([600]);if(soundOn&&audio){try{var o=audio.createOscillator(),g=audio.createGain();o.frequency.value=1000;g.gain.value=0.12;o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+2.2);}catch(e){}}
-    dead.hidden=false;document.querySelector('.bottom').hidden=true;}
+    dead.hidden=false;document.querySelector('.bottom').hidden=true;noise();}
+  var nT=null;function noise(){var c=document.getElementById('noise'),x=c.getContext('2d'),im=x.createImageData(c.width,c.height),d=im.data;
+    clearInterval(nT);if(reduce)return;nT=setInterval(function(){if(dead.hidden){clearInterval(nT);return;}
+      for(var k=0;k<d.length;k+=4){var v=Math.random()*255|0;d[k]=d[k+1]=d[k+2]=v;d[k+3]=255;}x.putImageData(im,0,0);},70);}
   function showReport(){dead.hidden=true;lock.hidden=true;document.querySelector('.bottom').hidden=true;report.hidden=false;window.scrollTo(0,0);startSpend();}
   function start(){clearTimeout(timer);stack.innerHTML='';more=null;hiddenCount=0;shown=0;i=0;battery=3;
     document.getElementById('pct').textContent='3%';lock.classList.remove('panic');lock.hidden=false;report.hidden=true;dead.hidden=true;
